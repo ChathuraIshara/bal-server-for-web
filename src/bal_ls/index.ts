@@ -13,7 +13,7 @@ import { BASE_DIR } from "../file_system/fsRoutes";
 
 export const runBalServer = async (httpServer: Server) => {
   let runCommand = "bal";
-  const runCommandArgs = [];
+  const runCommandArgs: string[] = [];
   if (os.platform() === "win32") {
     runCommand = "cmd.exe";
     runCommandArgs.push(...["/c", "bal.bat"]);
@@ -100,7 +100,7 @@ export const launchLanguageServer = (runconfig: LanguageServerRunConfig, socket:
   const reader = new WebSocketMessageReader(socket);
   const writer = new WebSocketMessageWriter(socket);
   const socketConnection = createConnection(reader, writer, () =>
-    socket.dispose()
+  socket.dispose()
   );
 
   const { serverName, runCommand, runCommandArgs, spawnOptions } = runconfig;
@@ -121,7 +121,8 @@ export const launchLanguageServer = (runconfig: LanguageServerRunConfig, socket:
       } else if (Message.isResponse(message)) {
         let resMessage = resolveResponseMessage(message)
         if (runconfig.logMessages ?? false) {
-          console.log(`${serverName} Server sent:`);
+          console.log("tring to sent response by server");
+          console.log(`${serverName} Servering sent:`);
           console.log(resMessage);
         }
         if (runconfig.responseMessageHandler !== undefined) {

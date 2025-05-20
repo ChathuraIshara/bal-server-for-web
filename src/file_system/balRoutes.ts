@@ -65,17 +65,23 @@ balRouter.get("/librarydata/:orgName/:moduleName/:version", async (req: Request,
 })
 
 balRouter.get("/info", async (req: Request, res: Response) => {
-    const balInfo = await getBallerinaHome();
-
-    if (balInfo) {
-        res.status(200).json(balInfo);
-    } else {
-        res.status(500).json({message: "Internal server error"});
+    try {
+        console.log('inside info');
+        const balInfo = await getBallerinaHome();
+        if (balInfo) {
+            res.status(200).json(balInfo);
+        } else {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    } catch (error) {
+        console.error("Error fetching Ballerina Home:", error);
+        res.status(500).json({ message: "Failed to retrieve Ballerina Home" });
     }
-})
+});
 
 
 balRouter.post("/pull", (req: Request, res: Response) => {
+    console.log('inside pull');
     const { command } = req.body;
     exec(`${command}`, async (err, stdout, stderr) => {
         if (err) {

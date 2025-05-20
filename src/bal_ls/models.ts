@@ -3,7 +3,9 @@ import { type RequestMessage, type ResponseMessage, NotificationMessage } from "
 import * as cp from "node:child_process";
 
 export enum LanguageName {
-    ballerina = "ballerina"
+    ballerina = "ballerina",
+    java="java",
+    python="python",
 }
 
 export interface LanguageServerRunConfig {

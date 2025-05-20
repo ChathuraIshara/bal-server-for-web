@@ -110,10 +110,12 @@ export function resolveRequestPath(message: RequestMessage) {
     case "serviceDesign/updateClassField":
     case "serviceDesign/addField":
       console.log(">>> case: ", message.method);
+      console.log("message params",message.params);
       if (message.params && "filePath" in message.params && message.params.filePath) {
         const inputPath = message.params.filePath as string;
-        const fixedPath = URI.parse(inputPath).path.substring(1);
+        const fixedPath = URI.parse(inputPath).path;
         message.params.filePath = fixedPath;
+        console.log("fixedPath: ", fixedPath);
       }
       break;
     case "jsonToRecordTypes/convert":
@@ -125,10 +127,12 @@ export function resolveRequestPath(message: RequestMessage) {
       break;
     case "designModelService/getDesignModel":
     case "configEditor/getConfigVariables":
+    case "icpService/isIcpEnabled":
       if (message.params && "projectPath" in message.params && message.params.projectPath) {
         const inputPath = message.params.projectPath as string;
-        const fixedPath = URI.parse(inputPath).path.substring(1);
+        const fixedPath = URI.parse(inputPath).path;
         message.params.projectPath = fixedPath;
+        console.log("fixedPath: ", fixedPath);
       }
       break;
     case "configEditor/updateConfigVariables":
@@ -184,6 +188,8 @@ export function resolveRequestPath(message: RequestMessage) {
         message.params.documentUri = fixedPath;
       }
       break;
+    default:
+      console.log(">>> default: ", message.method);  
   }
   return message;
 }
@@ -194,6 +200,7 @@ export function resolveResponseMessage(message: ResponseMessage) {
     && "designModel" in message.result &&
     message.result.designModel
   ) {
+    console.log("..inside designModel: ", message.result.designModel);
     const { connections, listeners, services } = message.result.designModel as { connections: any[], listeners: any[], services: any[] }
     connections.forEach(conn => {
       const oldFilePath = conn.location.filePath as string;
@@ -214,43 +221,50 @@ export function resolveResponseMessage(message: ResponseMessage) {
       service.location.filePath = fixedPath;
     });
   }
+  else{
+    console.log("... no designModel: ", message);
+  }
 
   return message;
 }
 
 export function getBallerinaHome(): Promise<BallerinaHome | undefined> {
   return new Promise((resolve, reject) => {
-    const userHome = os.homedir();
-    const ballerinaUserHomeName = '.ballerina';
-    const ballerinaUserHome = path.join(userHome, ballerinaUserHomeName);
-    const ballerinaHomeCustomDirName = "ballerina-home";
-    const ballerinaHome = path.join(ballerinaUserHome, ballerinaHomeCustomDirName);
-    const distPath = path.join(ballerinaHome, "bin") + path.sep;
-    const ballerinaExecutor = 'bal';
-    let exeExtension = "";
-    if (os.platform() === "win32") {
-      exeExtension = ".bat";
-    }
-    const ballerinaCmd = (distPath + ballerinaExecutor + exeExtension).trim();
-
-    exec(`${ballerinaCmd} version`, (err, stdout, stderr) => {
+     const balExecutablePath = '/usr/bin/bal';
+     const userHome = os.homedir();
+  //   console.log(`userHome: ${userHome}`);
+  //   const ballerinaUserHomeName = '.ballerina';
+  //   console.log(`ballerinaUserHomeName: ${ballerinaUserHomeName}`);
+  //   const ballerinaUserHome = path.join(userHome, ballerinaUserHomeName);
+  //   console.log(`ballerinaUserHome: ${ballerinaUserHome}`);
+  //   const ballerinaHomeCustomDirName = "ballerina-home";
+  //   const ballerinaHome = path.join(ballerinaUserHome, ballerinaHomeCustomDirName);
+  //   console.log(`ballerinaHome: ${ballerinaHome}`);
+  //   const distPath = path.join(ballerinaHome, "bin") + path.sep;
+  //   console.log(`distPath: ${distPath}`);
+  //   const ballerinaExecutor = 'bal';
+  //   let exeExtension = "";
+  //   if (os.platform() === "win32") {
+  //     exeExtension = ".bat";
+  //   }
+   // const ballerinaCmd = (distPath + ballerinaExecutor + exeExtension).trim(); 
+   exec(`${balExecutablePath} version`, (err, stdout, stderr) => {
       if (stdout) console.log(`bal command stdout: ${stdout}`);
       if (stderr) console.log(`bal command stderr: ${stderr}`);
       if (err || stdout.toLocaleLowerCase().includes("error")) {
-        console.error(`bal command error: ${err}`);
-        return reject(stdout);
+          console.error(`bal command error: ${err}`);
+          return reject(stdout);
       }
 
       try {
         const implVersionLine = stdout.split('\n')[0]; // e.g. Ballerina 2201.11.0
         const replacePrefix = implVersionLine.startsWith("jBallerina") ? /jBallerina / : /Ballerina /;
         const parsedVersion = implVersionLine.replace(replacePrefix, '').trim();
-
         resolve({
           userHome: userHome,
-          ballerinaHome: ballerinaHome,
-          distPath: distPath,
-          ballerinaCmd: ballerinaCmd,
+          ballerinaHome: "ballerinaHome",
+          distPath: "distPath",
+          ballerinaCmd: "ballerinaCmd",
           ballerinaVersionText: parsedVersion,
           ballerinaVersion: parsedVersion.split(" ")[0]
         });

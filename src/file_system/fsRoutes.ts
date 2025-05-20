@@ -22,6 +22,7 @@ fsRouter.get("/clone/:userId/:repoName", async (req: Request, res: Response) => 
     try {
         await git.clone(`https://github.com/${userId}/${repoName}.git`, userRepoPath);
         res.send(`Repository cloned successfully for user: ${userId}`);
+        console.log('cloned succesfully');
     } catch (error: any) {
         res.status(500).send(`Error cloning repo: ${error.message}`);
     }
@@ -39,6 +40,7 @@ fsRouter.get("/stat", (req: Request, res: Response) => {
 })
 
 fsRouter.get("/read", (req: Request, res: Response, next: NextFunction) => {
+    console.log('inside read scheme',req.query.scheme);
     const inputScheme = req.query.scheme as string;
     const inputUrl = req.query.url as string;
     const userRepoPath = inputScheme === SCHEME ? path.join(BASE_DIR, inputUrl) : inputUrl;
@@ -68,6 +70,7 @@ fsRouter.get("/read", (req: Request, res: Response, next: NextFunction) => {
             if (err) {
                 return res.status(500).send('Unable to read file');
             }
+            console.log('this is the data of the file',data);
             res.status(200).send(data);
         });
     }
@@ -95,6 +98,7 @@ fsRouter.get("/read", (req: Request, res: Response, next: NextFunction) => {
 fsRouter.post("/write", (req: Request, res: Response) => {
     const userRepoPath = path.join(BASE_DIR, req.query.url as string);
     const { content } = req.body;
+    console.log(`Writing content of this ${userRepoPath} is ${content}`)
     fs.writeFile(userRepoPath, content, (err) => {
         if (err) {
             return res.status(500).send('Unable to write file');
@@ -105,6 +109,7 @@ fsRouter.post("/write", (req: Request, res: Response) => {
 
 fsRouter.delete("/remove", (req: Request, res: Response) => {
     const inputPath = path.join(BASE_DIR, req.query.url as string);
+    console.log('this is the path to be deleted',inputPath);
 
     fs.rm(inputPath, { recursive: true, force: true }, (err) => {
         if (err) res.status(500).send(`Error removing path: ${err.message}`);
