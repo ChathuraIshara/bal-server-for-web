@@ -188,6 +188,33 @@ export function resolveRequestPath(message: RequestMessage) {
         message.params.documentUri = fixedPath;
       }
       break;
+    case "ballerinaDocument/syntaxTree":
+  console.log("ballerinaDocument/syntaxTree");
+  if (
+    message.params &&
+    typeof message.params === "object" &&
+    "documentIdentifier" in message.params &&
+    message.params.documentIdentifier &&
+    typeof message.params.documentIdentifier === "object" &&
+    "uri" in message.params.documentIdentifier &&
+    typeof message.params.documentIdentifier.uri === "string"
+  ) {
+    const inputUri = message.params.documentIdentifier.uri as string;
+    let absPath = inputUri;
+    if (inputUri.startsWith("file:///web-bala%3A")) {
+      const prefix = "file:///web-bala%3A";
+      const relative = decodeURIComponent(inputUri.substring(prefix.length));
+      absPath = path.join(BASE_DIR, relative);
+    } else if (inputUri.startsWith("web-bala:")) {
+      const relative = decodeURIComponent(inputUri.replace("web-bala:", ""));
+      absPath = path.join(BASE_DIR, relative);
+    } else if (inputUri.startsWith("file://")) {
+      absPath = URI.parse(inputUri).path;
+    }
+    message.params.documentIdentifier.uri = URI.file(absPath).toString();
+    console.log("syntaxTree file URI:", message.params.documentIdentifier.uri);
+  }
+  break;
     default:
       console.log(">>> default: ", message.method);  
   }
