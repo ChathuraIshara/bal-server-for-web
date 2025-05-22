@@ -216,9 +216,11 @@ export function resolveRequestPath(message: RequestMessage) {
       }
     case "serviceDesign/getServiceFromSource":
       if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("serviceDesign/getServiceFromSource:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
         const fixedPath = URI.parse(inputPath).path;
-        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+        message.params.filePath = fixedPath;
+        console.log("changed service design file path")
         console.log("serviceDesign/getServiceFromSource:file path", message.params.filePath);
       }
     case "flowDesignService/getFlowModel":
