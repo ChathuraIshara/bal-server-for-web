@@ -11,6 +11,7 @@ import { URI } from "vscode-uri";
 export const COMMAND_NOT_FOUND = "command not found";
 export const NO_SUCH_FILE = "No such file or directory";
 export const ERROR = "Error:";
+const BASE_REPO_DIR = '/home/my-project/Cloud-editor/bal-server-for-web/repos';
 
 export interface BallerinaHome {
   userHome: string,
@@ -207,41 +208,54 @@ export function resolveRequestPath(message: RequestMessage) {
         message.params.documentIdentifier.uri =fileUri;
         console.log("syntaxTree file URI:", message.params.documentIdentifier.uri);
       }
+      break;
     case "flowDesignService/getEnclosedFunctionDef":
       if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("flowDesignService/getEnclosedFunctionDef:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
         const fixedPath = URI.parse(inputPath).path;
-        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+        message.params.filePath = normalizePath(message.params.filePath as string);
         console.log("flowDesignService/getEnclosedFunctionDef:file path", message.params.filePath);
       }
+      break;
     case "serviceDesign/getServiceFromSource":
       if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("serviceDesign/getServiceFromSource:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
         const fixedPath = URI.parse(inputPath).path;
-        message.params.filePath = fixedPath;
+        message.params.filePath = normalizePath(message.params.filePath as string);
         console.log("changed service design file path")
         console.log("serviceDesign/getServiceFromSource:file path", message.params.filePath);
       }
+      break;
     case "flowDesignService/getFlowModel":
       if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("flowDesignService/getFlowModel:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
         const fixedPath = URI.parse(inputPath).path;
-        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+        message.params.filePath =normalizePath(message.params.filePath as string);
         console.log("flowDesignService/getFlowModel:file path", message.params.filePath);
       }
-    case "sequenceModelGeneratorService/getSequenceDiagramModel":
-      if (message.params && "filePath" in message.params && message.params.filePath) {
-        const inputPath = message.params.filePath as string;
-        const fixedPath = URI.parse(inputPath).path;
-        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
-        console.log("sequenceModelGeneratorService/getSequenceDiagramModel:file path", message.params.filePath);
-      }
-
-
-
-
-      break;
+    break;
+   case "sequenceModelGeneratorService/getSequenceDiagramModel":
+  if (message.params && "filePath" in message.params && message.params.filePath) {
+    console.log("input path of sequence model generator service", message.params.filePath);
+    const inputPath = message.params.filePath as string;
+    const normalized = inputPath.replace(/\\/g, '/');
+    
+    // Remove any existing BASE_DIR prefix to avoid duplication
+    const cleanPath = normalized.startsWith(BASE_DIR) 
+      ? normalized.substring(BASE_DIR.length)
+      : normalized;
+    
+    // Construct the proper absolute path
+    const fixedPath = path.join(BASE_DIR, cleanPath);
+    
+    // Ensure the path is properly normalized
+    message.params.filePath = path.normalize(fixedPath);
+    console.log("sequenceModelGeneratorService/getSequenceDiagramModel: fixed file path", message.params.filePath);
+  }
+  break;
     default:
       console.log(">>> default: ", message.method);
   }
@@ -280,6 +294,25 @@ export function resolveResponseMessage(message: ResponseMessage) {
   }
 
   return message;
+}
+
+function normalizePath(inputPath: string): string {
+  // Case 1: Handle file:// URIs
+  if (inputPath.startsWith('file://')) {
+    return fileURLToPath(inputPath);
+  }
+
+  // Case 2: Handle relative-looking paths (e.g., /ChathuraIshara/...)
+  if (inputPath.startsWith('/') && !inputPath.startsWith(BASE_REPO_DIR)) {
+    // Remove leading slash if it's not part of the base dir
+    const relativePath = inputPath.startsWith('/') 
+      ? inputPath.substring(1) 
+      : inputPath;
+    return path.join(BASE_REPO_DIR, relativePath);
+  }
+
+  // Case 3: Already absolute path (return as-is)
+  return inputPath;
 }
 
 export function getBallerinaHome(): Promise<BallerinaHome | undefined> {
