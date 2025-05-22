@@ -205,7 +205,7 @@ export function resolveRequestPath(message: RequestMessage) {
         const absPath = path.join(BASE_DIR, relative);
         const fileUri = URI.file(absPath).toString();
         console.log("fileuri in syntax tree",fileUri);
-        message.params.documentIdentifier.uri =fileUri;
+        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTree(inputUri);
         console.log("syntaxTree file URI:", message.params.documentIdentifier.uri);
       }
       break;
@@ -313,6 +313,24 @@ function normalizePath(inputPath: string): string {
 
   // Case 3: Already absolute path (return as-is)
   return inputPath;
+}
+function normalizeFilePathForSyntaxTree(inputPath: string): string {
+    const BASE_PREFIX = 'file:///home/my-project/Cloud-editor/bal-server-for-web/repos/';
+    
+    // Case 1: file:///ChathuraIshara/...
+    if (inputPath.startsWith('file:///') && !inputPath.includes('web-bala%3A')) {
+        const relativePath = inputPath.replace('file:///', '');
+        return BASE_PREFIX + relativePath;
+    }
+    
+    // Case 2: file:///web-bala%3A/ChathuraIshara/...
+    if (inputPath.startsWith('file:///web-bala%3A/')) {
+        const relativePath = inputPath.replace('file:///web-bala%3A/', '');
+        return BASE_PREFIX + relativePath;
+    }
+    
+    // If neither case matches, return as-is (or throw error if you prefer)
+    return inputPath;
 }
 
 export function getBallerinaHome(): Promise<BallerinaHome | undefined> {
