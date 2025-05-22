@@ -87,7 +87,6 @@ export function resolveRequestPath(message: RequestMessage) {
     case "typesManager/getTypes":
     case "typesManager/updateType":
     case "xmlToRecordTypes/convert":
-    case "serviceDesign/getServiceFromSource":
     case "serviceDesign/updateFunction":
     case "serviceDesign/addResource":
     case "expressionEditor/types":
@@ -110,7 +109,7 @@ export function resolveRequestPath(message: RequestMessage) {
     case "serviceDesign/updateClassField":
     case "serviceDesign/addField":
       console.log(">>> case: ", message.method);
-      console.log("message params",message.params);
+      console.log("message params", message.params);
       if (message.params && "filePath" in message.params && message.params.filePath) {
         const inputPath = message.params.filePath as string;
         const fixedPath = URI.parse(inputPath).path;
@@ -189,34 +188,60 @@ export function resolveRequestPath(message: RequestMessage) {
       }
       break;
     case "ballerinaDocument/syntaxTree":
-  console.log("ballerinaDocument/syntaxTree");
-  if (
-    message.params &&
-    typeof message.params === "object" &&
-    "documentIdentifier" in message.params &&
-    message.params.documentIdentifier &&
-    typeof message.params.documentIdentifier === "object" &&
-    "uri" in message.params.documentIdentifier &&
-    typeof message.params.documentIdentifier.uri === "string"
-  ) {
-    const inputUri = message.params.documentIdentifier.uri as string;
-    let absPath = inputUri;
-    if (inputUri.startsWith("file:///web-bala%3A")) {
-      const prefix = "file:///web-bala%3A";
-      const relative = decodeURIComponent(inputUri.substring(prefix.length));
-      absPath = path.join(BASE_DIR, relative);
-    } else if (inputUri.startsWith("web-bala:")) {
-      const relative = decodeURIComponent(inputUri.replace("web-bala:", ""));
-      absPath = path.join(BASE_DIR, relative);
-    } else if (inputUri.startsWith("file://")) {
-      absPath = URI.parse(inputUri).path;
-    }
-    message.params.documentIdentifier.uri = URI.file(absPath).toString();
-    console.log("syntaxTree file URI:", message.params.documentIdentifier.uri);
-  }
-  break;
+      console.log("ballerinaDocument/syntaxTree");
+      if (
+        message.params &&
+        typeof message.params === "object" &&
+        "documentIdentifier" in message.params &&
+        message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier === "object" &&
+        "uri" in message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier.uri === "string"
+      ) {
+        console.log("inside syntaxTree: ", message.params.documentIdentifier.uri);
+        const inputUri = message.params.documentIdentifier.uri as string;
+        const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
+        const absPath = path.join(BASE_DIR, relative);
+        const fileUri = URI.file(absPath).toString();
+        console.log("fileuri in syntax tree",fileUri);
+        message.params.documentIdentifier.uri =fileUri;
+        console.log("syntaxTree file URI:", message.params.documentIdentifier.uri);
+      }
+    case "flowDesignService/getEnclosedFunctionDef":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        const inputPath = message.params.filePath as string;
+        const fixedPath = URI.parse(inputPath).path;
+        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+        console.log("flowDesignService/getEnclosedFunctionDef:file path", message.params.filePath);
+      }
+    case "serviceDesign/getServiceFromSource":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        const inputPath = message.params.filePath as string;
+        const fixedPath = URI.parse(inputPath).path;
+        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+        console.log("serviceDesign/getServiceFromSource:file path", message.params.filePath);
+      }
+    case "flowDesignService/getFlowModel":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        const inputPath = message.params.filePath as string;
+        const fixedPath = URI.parse(inputPath).path;
+        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+        console.log("flowDesignService/getFlowModel:file path", message.params.filePath);
+      }
+    case "sequenceModelGeneratorService/getSequenceDiagramModel":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        const inputPath = message.params.filePath as string;
+        const fixedPath = URI.parse(inputPath).path;
+        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+        console.log("sequenceModelGeneratorService/getSequenceDiagramModel:file path", message.params.filePath);
+      }
+
+
+
+
+      break;
     default:
-      console.log(">>> default: ", message.method);  
+      console.log(">>> default: ", message.method);
   }
   return message;
 }
@@ -248,7 +273,7 @@ export function resolveResponseMessage(message: ResponseMessage) {
       service.location.filePath = fixedPath;
     });
   }
-  else{
+  else {
     console.log("... no designModel: ", message);
   }
 
@@ -257,30 +282,30 @@ export function resolveResponseMessage(message: ResponseMessage) {
 
 export function getBallerinaHome(): Promise<BallerinaHome | undefined> {
   return new Promise((resolve, reject) => {
-     const balExecutablePath = '/usr/bin/bal';
-     const userHome = os.homedir();
-  //   console.log(`userHome: ${userHome}`);
-  //   const ballerinaUserHomeName = '.ballerina';
-  //   console.log(`ballerinaUserHomeName: ${ballerinaUserHomeName}`);
-  //   const ballerinaUserHome = path.join(userHome, ballerinaUserHomeName);
-  //   console.log(`ballerinaUserHome: ${ballerinaUserHome}`);
-  //   const ballerinaHomeCustomDirName = "ballerina-home";
-  //   const ballerinaHome = path.join(ballerinaUserHome, ballerinaHomeCustomDirName);
-  //   console.log(`ballerinaHome: ${ballerinaHome}`);
-  //   const distPath = path.join(ballerinaHome, "bin") + path.sep;
-  //   console.log(`distPath: ${distPath}`);
-  //   const ballerinaExecutor = 'bal';
-  //   let exeExtension = "";
-  //   if (os.platform() === "win32") {
-  //     exeExtension = ".bat";
-  //   }
-   // const ballerinaCmd = (distPath + ballerinaExecutor + exeExtension).trim(); 
-   exec(`${balExecutablePath} version`, (err, stdout, stderr) => {
+    const balExecutablePath = '/usr/bin/bal';
+    const userHome = os.homedir();
+    //   console.log(`userHome: ${userHome}`);
+    //   const ballerinaUserHomeName = '.ballerina';
+    //   console.log(`ballerinaUserHomeName: ${ballerinaUserHomeName}`);
+    //   const ballerinaUserHome = path.join(userHome, ballerinaUserHomeName);
+    //   console.log(`ballerinaUserHome: ${ballerinaUserHome}`);
+    //   const ballerinaHomeCustomDirName = "ballerina-home";
+    //   const ballerinaHome = path.join(ballerinaUserHome, ballerinaHomeCustomDirName);
+    //   console.log(`ballerinaHome: ${ballerinaHome}`);
+    //   const distPath = path.join(ballerinaHome, "bin") + path.sep;
+    //   console.log(`distPath: ${distPath}`);
+    //   const ballerinaExecutor = 'bal';
+    //   let exeExtension = "";
+    //   if (os.platform() === "win32") {
+    //     exeExtension = ".bat";
+    //   }
+    // const ballerinaCmd = (distPath + ballerinaExecutor + exeExtension).trim(); 
+    exec(`${balExecutablePath} version`, (err, stdout, stderr) => {
       if (stdout) console.log(`bal command stdout: ${stdout}`);
       if (stderr) console.log(`bal command stderr: ${stderr}`);
       if (err || stdout.toLocaleLowerCase().includes("error")) {
-          console.error(`bal command error: ${err}`);
-          return reject(stdout);
+        console.error(`bal command error: ${err}`);
+        return reject(stdout);
       }
 
       try {

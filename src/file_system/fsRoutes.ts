@@ -11,6 +11,7 @@ export const BASE_DIR: string = path.join(path.resolve(__dirname, '../..'), 'rep
 export const BASE_DIR_1: string = path.join(path.resolve(__dirname, '../..'), 'repos'); // Base directory for all repos
 
 fsRouter.get("/clone/:userId/:repoName", async (req: Request, res: Response) => {
+    console.log("base dir", BASE_DIR);
     const { userId, repoName } = req.params;
     const userRepoPath = path.join(BASE_DIR, userId, repoName);
     console.log("cloning into: ", userRepoPath)
