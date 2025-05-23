@@ -277,6 +277,14 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("flowDesignService/search:file path", message.params.filePath);
       }
   break;
+  case "flowDesignService/getCopilotContext":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("fflowDesignService/getCopilotContext:file path incoming", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("flowDesignService/getCopilotContext:file path", message.params.filePath);
+      }
+  break;
 
   default:
       console.log(">>> default: ", message.method);
