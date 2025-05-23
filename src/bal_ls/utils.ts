@@ -89,7 +89,6 @@ export function resolveRequestPath(message: RequestMessage) {
     case "typesManager/updateType":
     case "xmlToRecordTypes/convert":
     case "serviceDesign/updateFunction":
-    case "serviceDesign/addResource":
     case "expressionEditor/types":
     case "serviceDesign/getListenerFromSource":
     case "serviceDesign/updateListener":
@@ -255,8 +254,31 @@ export function resolveRequestPath(message: RequestMessage) {
     message.params.filePath = path.normalize(fixedPath);
     console.log("sequenceModelGeneratorService/getSequenceDiagramModel: fixed file path", message.params.filePath);
   }
+  case "serviceDesign/addResource":
+    if(message.params && "filePath" in message.params && message.params.filePath) {
+      console.log("input path of add resource", message.params.filePath);
+      message.params.filePath="/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+      console.log("add resource new file path", message.params.filePath);
+    }
   break;
-    default:
+  case "flowDesignService/getAvailableNodes":
+     if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("flowDesignService/getAvailableNodes:file path incoming", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("flowDesignService/getAvailableNodes:file path", message.params.filePath);
+      }
+  break;
+  case "flowDesignService/search":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("flowDesignService/search:file path incoming", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("flowDesignService/search:file path", message.params.filePath);
+      }
+  break;
+
+  default:
       console.log(">>> default: ", message.method);
   }
   return message;
@@ -291,6 +313,19 @@ export function resolveResponseMessage(message: ResponseMessage) {
   }
   else {
     console.log("... no designModel: ", message);
+    if (message.result && typeof message.result === "object" && message.result !== null) {
+      if ("textEdits" in message.result && typeof message.result.textEdits === "object" && message.result.textEdits !== null) {
+        // const oldTextEdits = message.result.textEdits as Record<string, any>;
+        // const newTextEdits: Record<string, any> = {};
+        // for (const key of Object.keys(oldTextEdits)) {
+        //   // Only change the key, keep the value as is
+        //   const newKey = key.startsWith("web-bala:") ? key : `web-bala:${key}`;
+        //   newTextEdits[newKey] = oldTextEdits[key];
+        // }
+        // message.result.textEdits = newTextEdits;
+      }
+      console.log("... message.result: ", message.result);
+    }
   }
 
   return message;
