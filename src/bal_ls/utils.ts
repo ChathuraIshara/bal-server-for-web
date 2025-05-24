@@ -323,7 +323,7 @@ export function resolveRequestPath(message: RequestMessage) {
         const absPath = path.join(BASE_DIR, relative);
         const fileUri = URI.file(absPath).toString();
         console.log("fileuri in syntax tree modify",fileUri);
-        message.params.documentIdentifier.uri =message.params.documentIdentifier.uri;
+        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTreeModify(inputUri);
         console.log("syntaxTree modify file URI:", message.params.documentIdentifier.uri);
       }
   break;
@@ -432,6 +432,29 @@ function normalizeFilePathForSyntaxTree(inputPath: string): string {
     return inputPath;
 }
 
+// Converts a file URI to an absolute file URI rooted at BASE_REPO_DIR.
+function normalizeFilePathForSyntaxTreeModify(inputUri: string): string {
+  if (!inputUri.startsWith('file:///')) return inputUri;
+
+  // Handle file:///web-bala%3A/ prefix (URL-encoded 'web-bala:')
+  if (inputUri.startsWith('file:///web-bala%3A/')) {
+    const relativePath = inputUri.replace('file:///web-bala%3A/', '');
+    const absPath = path.join(BASE_REPO_DIR, relativePath);
+    return URI.file(absPath).toString();
+  }
+
+  // Remove 'file://', keep the path part
+  const pathPart = inputUri.replace('file://', '');
+  // If already absolute (starts with BASE_REPO_DIR), return as is
+  if (pathPart.startsWith(BASE_REPO_DIR)) {
+    return inputUri;
+  }
+  // Remove leading slashes and join with BASE_REPO_DIR
+  const relativePath = pathPart.replace(/^\/+/, '');
+  const absPath = path.join(BASE_REPO_DIR, relativePath);
+  return URI.file(absPath).toString();
+}
+
 export function getBallerinaHome(): Promise<BallerinaHome | undefined> {
   return new Promise((resolve, reject) => {
     const balExecutablePath = '/usr/bin/bal';
@@ -506,3 +529,5 @@ export function resolveNotification(message: NotificationMessage) {
   return message;
  
 }
+
+
