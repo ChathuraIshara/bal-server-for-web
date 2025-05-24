@@ -6,7 +6,7 @@ import { type IWebSocket, RequestMessage, WebSocketMessageReader, WebSocketMessa
 import { createConnection, createServerProcess, forward } from "vscode-ws-jsonrpc/lib/server";
 import { Message, InitializeRequest, type InitializeResult, type InitializeParams, RegistrationParams, RegistrationRequest } from "vscode-languageserver-protocol";
 import { LanguageName, LanguageServerRunConfig, SCHEME } from "./models";
-import { getBallerinaHome, resolveAbsolutePath, resolveRequestPath, resolveResponseMessage } from "./utils";
+import { getBallerinaHome, resolveAbsolutePath, resolveNotification, resolveRequestPath, resolveResponseMessage } from "./utils";
 import { URI } from "vscode-uri";
 import os from "os";
 import { BASE_DIR } from "../file_system/fsRoutes";
@@ -132,6 +132,8 @@ export const launchLanguageServer = (runconfig: LanguageServerRunConfig, socket:
         if (runconfig.logMessages ?? false) {
           console.log(`${serverName} Server sent/received notification:`);
           console.log(message);
+          resolveNotification(message);
+          console.log("after resolveNotification", message);
         }
         if (runconfig.NotificationMessageHandler !== undefined) {
           return runconfig.NotificationMessageHandler(message);

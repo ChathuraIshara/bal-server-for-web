@@ -5,7 +5,7 @@ import { BASE_DIR, BASE_DIR_1 } from "../file_system/fsRoutes";
 import * as path from "path";
 import os from "os";
 import { exec } from 'child_process';
-import { InitializeParams, InitializeRequest, RegistrationParams, RegistrationRequest, RequestMessage, ResponseMessage } from "vscode-languageserver-protocol";
+import { InitializeParams, InitializeRequest, NotificationMessage, RegistrationParams, RegistrationRequest, RequestMessage, ResponseMessage } from "vscode-languageserver-protocol";
 import { URI } from "vscode-uri";
 
 export const COMMAND_NOT_FOUND = "command not found";
@@ -95,8 +95,6 @@ export function resolveRequestPath(message: RequestMessage) {
     case "bi-diagram/getVisibleVariableTypes":
     case "serviceDesign/updateService":
     case "expressionEditor/visibleVariableTypes":
-    case "flowDesignService/getNodeTemplate":
-    case "flowDesignService/getSourceCode":
     case "serviceDesign/getListeners":
     case "serviceDesign/getServiceModel":
     case "serviceDesign/addListener":
@@ -285,7 +283,58 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("flowDesignService/getCopilotContext:file path", message.params.filePath);
       }
   break;
-
+  case "flowDesignService/getNodeTemplate":
+     if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("fflowDesignService/getNodeTemplate:file path incoming", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("flowDesignService/getNodeTemplate:file path", message.params.filePath);
+      }
+  break;
+   case "dataMapper/visualizable":
+     if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("dataMapper/visualizable:file path incoming", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("dataMapper/visualizable:file path", message.params.filePath);
+      }
+  break;
+   case "flowDesignService/getSourceCode":
+     if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("flowDesignService/getSourceCode:file path incoming", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("flowDesignService/getSourceCode:file path", message.params.filePath);
+      }
+  break;
+   case "ballerinaDocument/syntaxTreeModify":
+     if (
+        message.params &&
+        typeof message.params === "object" &&
+        "documentIdentifier" in message.params &&
+        message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier === "object" &&
+        "uri" in message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier.uri === "string"
+      ) {
+        console.log("inside syntaxTreeModify: ", message.params.documentIdentifier.uri);
+        const inputUri = message.params.documentIdentifier.uri as string;
+        const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
+        const absPath = path.join(BASE_DIR, relative);
+        const fileUri = URI.file(absPath).toString();
+        console.log("fileuri in syntax tree modify",fileUri);
+        message.params.documentIdentifier.uri =message.params.documentIdentifier.uri;
+        console.log("syntaxTree modify file URI:", message.params.documentIdentifier.uri);
+      }
+  break;
+  // case "designModelService/artifacts":
+  //     if (message.params && "projectPath" in message.params && message.params.projectPath) {
+  //       const inputPath = message.params.projectPath as string;
+  //       const fixedPath = URI.parse(inputPath).path;
+  //       message.params.projectPath = fixedPath;
+  //       console.log("fixedPath of designModelService/artifacts: ", fixedPath);
+  //     }
+  // break;
   default:
       console.log(">>> default: ", message.method);
   }
@@ -354,7 +403,14 @@ function normalizePath(inputPath: string): string {
     return path.join(BASE_REPO_DIR, relativePath);
   }
 
-  // Case 3: Already absolute path (return as-is)
+   // Case 3: Only filename (e.g., main.bal)
+  // if (!inputPath.includes('/') && !inputPath.includes('\\')) {
+  //   // Set your default subdirectory here:
+  //   const defaultSubDir = 'ChathuraIshara/post-intergration';
+  //   return path.join(BASE_REPO_DIR, defaultSubDir, inputPath);
+  // }
+
+  // Case 4: Already absolute path (return as-is)
   return inputPath;
 }
 function normalizeFilePathForSyntaxTree(inputPath: string): string {
@@ -422,4 +478,31 @@ export function getBallerinaHome(): Promise<BallerinaHome | undefined> {
       }
     });
   });
+}
+
+export function resolveNotification(message: NotificationMessage) {
+  if (message.method === "textDocument/didOpen" || message.method === "textDocument/didClose") {
+    if (
+      message.params &&
+      typeof message.params === "object" &&
+      "textDocument" in message.params &&
+      message.params.textDocument &&
+      typeof message.params.textDocument === "object" &&
+      "uri" in message.params.textDocument &&
+      typeof message.params.textDocument.uri === "string"
+    ) {
+      const uri = message.params.textDocument.uri as string;
+      if (uri.startsWith("expr:")) {
+        // Remove 'expr:' and any leading slashes
+        const relativePath = uri.replace(/^expr:/, "").replace(/^\/+/ , "");
+        // Join with BASE_DIR to get absolute path
+        const absPath = path.join(BASE_DIR, relativePath);
+        // Convert to file URI
+        const fileUri = URI.file(absPath).toString();
+        message.params.textDocument.uri = fileUri;
+      }
+    }
+  }
+  return message;
+ 
 }
