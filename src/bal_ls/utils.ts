@@ -360,6 +360,21 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("fixedPath of openAPIService/getModules: ", fixedPath);
       }
   break;
+    case "textDocument/rename":
+      if (
+        message.params &&
+        typeof message.params === "object" &&
+        "textDocument" in message.params &&
+        message.params.textDocument &&
+        typeof message.params.textDocument === "object" &&
+        "uri" in message.params.textDocument &&
+        typeof message.params.textDocument.uri === "string"
+      ) {
+        const inputUri = message.params.textDocument.uri as string;
+        message.params.textDocument.uri = normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("textDocument/rename file URI:", message.params.textDocument.uri);
+      }
+      break;
   default:
       console.log(">>> default: ", message.method);
   }
