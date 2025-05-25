@@ -89,7 +89,6 @@ export function resolveRequestPath(message: RequestMessage) {
     case "typesManager/updateType":
     case "xmlToRecordTypes/convert":
     case "serviceDesign/updateFunction":
-    case "serviceDesign/getListenerFromSource":
     case "serviceDesign/updateListener":
     case "bi-diagram/getVisibleVariableTypes":
     case "serviceDesign/updateService":
@@ -375,6 +374,13 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("textDocument/rename file URI:", message.params.textDocument.uri);
       }
       break;
+    case "serviceDesign/getListenerFromSource":
+       if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("serviceDesign/getListenerFromSource:file path incoming", message.params.filePath);
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("serviceDesign/getListenerFromSource:file path", message.params.filePath);
+      }
+    break;
   default:
       console.log(">>> default: ", message.method);
   }
