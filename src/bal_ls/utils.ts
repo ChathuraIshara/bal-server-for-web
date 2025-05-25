@@ -346,7 +346,7 @@ export function resolveRequestPath(message: RequestMessage) {
      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("expressionEditor/types:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath =normalizeTypePath(message.params.filePath as string);
         console.log("expressionEditor/types:file path", message.params.filePath);
       }
   break;
@@ -419,6 +419,41 @@ function normalizePath(inputPath: string): string {
   }
 
    // Case 3: Only filename (e.g., main.bal)
+  // if (!inputPath.includes('/') && !inputPath.includes('\\')) {
+  //   // Set your default subdirectory here:
+  //   const defaultSubDir = 'ChathuraIshara/post-intergration';
+  //   return path.join(BASE_REPO_DIR, defaultSubDir, inputPath);
+  // }
+
+  // Case 4: Already absolute path (return as-is)
+  return inputPath;
+}
+function normalizeTypePath(inputPath: string): string {
+  // Case 0: Handle leading backslash and Windows-style file URI
+  if (inputPath.startsWith('\\file:///') || inputPath.startsWith('\file:///') || inputPath.startsWith('/file:///')) {
+    // Remove leading slash or backslash, replace all backslashes with slashes
+    const cleaned = inputPath.replace(/^\\+|^\/+/, '').replace(/\\/g, '/');
+    if (cleaned.startsWith('file:///')) {
+      return fileURLToPath(cleaned);
+    }
+    return cleaned;
+  }
+
+  // Case 1: Handle file:// URIs
+  if (inputPath.startsWith('file://')) {
+    return fileURLToPath(inputPath);
+  }
+
+  // Case 2: Handle relative-looking paths (e.g., /ChathuraIshara/...)
+  if (inputPath.startsWith('/') && !inputPath.startsWith(BASE_REPO_DIR)) {
+    // Remove leading slash if it's not part of the base dir
+    const relativePath = inputPath.startsWith('/') 
+      ? inputPath.substring(1) 
+      : inputPath;
+    return path.join(BASE_REPO_DIR, relativePath);
+  }
+
+  // Case 3: Only filename (e.g., main.bal)
   // if (!inputPath.includes('/') && !inputPath.includes('\\')) {
   //   // Set your default subdirectory here:
   //   const defaultSubDir = 'ChathuraIshara/post-intergration';
