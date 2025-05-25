@@ -89,7 +89,6 @@ export function resolveRequestPath(message: RequestMessage) {
     case "typesManager/updateType":
     case "xmlToRecordTypes/convert":
     case "serviceDesign/updateFunction":
-    case "expressionEditor/types":
     case "serviceDesign/getListenerFromSource":
     case "serviceDesign/updateListener":
     case "bi-diagram/getVisibleVariableTypes":
@@ -341,6 +340,14 @@ export function resolveRequestPath(message: RequestMessage) {
         const inputPath = message.params.filePath as string;
         message.params.filePath =normalizePath(message.params.filePath as string);
         console.log("expressionEditor/diagnostics:file path", message.params.filePath);
+      }
+  break;
+  case "expressionEditor/types":
+     if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("expressionEditor/types:file path incoming", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("expressionEditor/types:file path", message.params.filePath);
       }
   break;
   default:
