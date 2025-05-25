@@ -270,7 +270,7 @@ export function resolveRequestPath(message: RequestMessage) {
       if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("flowDesignService/search:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath =normalizeTypePath(message.params.filePath as string);
         console.log("flowDesignService/search:file path", message.params.filePath);
       }
   break;
@@ -331,9 +331,10 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("designModelService/artifacts: projectPath incoming", message.params.projectPath);
         const inputPath = message.params.projectPath as string;
         const fixedPath = URI.parse(inputPath).path;
-       // message.params.projectPath = fixedPath;
+        message.params.projectPath = normalizeProjectPath(inputPath);
         console.log("fixedPath of designModelService/artifacts: ", fixedPath);
       }
+  break;
   case "expressionEditor/diagnostics":
      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("expressionEditor/diagnostics:file path incoming", message.params.filePath);
@@ -348,6 +349,15 @@ export function resolveRequestPath(message: RequestMessage) {
         const inputPath = message.params.filePath as string;
         message.params.filePath =normalizeTypePath(message.params.filePath as string);
         console.log("expressionEditor/types:file path", message.params.filePath);
+      }
+  break;
+   case "openAPIService/getModules":
+      if (message.params && "projectPath" in message.params && message.params.projectPath) {
+        console.log("openAPIService/getModules: projectPath incoming", message.params.projectPath);
+        const inputPath = message.params.projectPath as string;
+        const fixedPath = URI.parse(inputPath).path;
+        message.params.projectPath = normalizeProjectPath(inputPath);
+        console.log("fixedPath of openAPIService/getModules: ", fixedPath);
       }
   break;
   default:
@@ -578,6 +588,23 @@ export function resolveNotification(message: NotificationMessage) {
   }
   return message;
  
+}
+
+function normalizeProjectPath(inputPath: string): string {
+  // Handle file URI (file:///...)
+  if (inputPath.startsWith('file://')) {
+    return fileURLToPath(inputPath);
+  }
+  // Handle already absolute path (starts with /home/...)
+  if (inputPath.startsWith(BASE_REPO_DIR)) {
+    return inputPath;
+  }
+  // Handle relative path (e.g., /ChathuraIshara/...)
+  if (inputPath.startsWith('/')) {
+    return path.join(BASE_REPO_DIR, inputPath.substring(1));
+  }
+  // Otherwise, treat as relative to BASE_REPO_DIR
+  return path.join(BASE_REPO_DIR, inputPath);
 }
 
 
