@@ -327,14 +327,22 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("syntaxTree modify file URI:", message.params.documentIdentifier.uri);
       }
   break;
-  // case "designModelService/artifacts":
-  //     if (message.params && "projectPath" in message.params && message.params.projectPath) {
-  //       const inputPath = message.params.projectPath as string;
-  //       const fixedPath = URI.parse(inputPath).path;
-  //       message.params.projectPath = fixedPath;
-  //       console.log("fixedPath of designModelService/artifacts: ", fixedPath);
-  //     }
-  // break;
+  case "designModelService/artifacts":
+      if (message.params && "projectPath" in message.params && message.params.projectPath) {
+        console.log("designModelService/artifacts: projectPath incoming", message.params.projectPath);
+        const inputPath = message.params.projectPath as string;
+        const fixedPath = URI.parse(inputPath).path;
+       // message.params.projectPath = fixedPath;
+        console.log("fixedPath of designModelService/artifacts: ", fixedPath);
+      }
+  case "expressionEditor/diagnostics":
+     if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("expressionEditor/diagnostics:file path incoming", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("expressionEditor/diagnostics:file path", message.params.filePath);
+      }
+  break;
   default:
       console.log(">>> default: ", message.method);
   }
