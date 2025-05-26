@@ -250,6 +250,7 @@ export function resolveRequestPath(message: RequestMessage) {
     message.params.filePath = path.normalize(fixedPath);
     console.log("sequenceModelGeneratorService/getSequenceDiagramModel: fixed file path", message.params.filePath);
   }
+  break;
   case "serviceDesign/addResource":
     if(message.params && "filePath" in message.params && message.params.filePath) {
       console.log("input path of add resource", message.params.filePath);
@@ -379,6 +380,12 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("serviceDesign/getListenerFromSource:file path incoming", message.params.filePath);
         message.params.filePath =normalizePath(message.params.filePath as string);
         console.log("serviceDesign/getListenerFromSource:file path", message.params.filePath);
+      }
+    case "serviceDesign/updateFunction":
+       if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("serviceDesign/updateFunction:file path incoming", message.params.filePath);
+        message.params.filePath =normalizePath(message.params.filePath as string);
+        console.log("serviceDesign/updateFunction:file path", message.params.filePath);
       }
     break;
   default:
