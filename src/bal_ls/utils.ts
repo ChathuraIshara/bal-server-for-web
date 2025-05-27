@@ -58,6 +58,7 @@ export const resolveAbsolutePath = (message: string) => {
 
   if (message.includes(`${SCHEME}:`)) { // messages from client
     message = message.replace(new RegExp(`${SCHEME}:`, 'g'), `${fileScheme}${BASE_DIR}`);
+    console.log('messege from client',message);
   } else if (
     message.includes(`${BASE_DIR}`) ||
     message.includes("bala:/") ||
@@ -92,7 +93,6 @@ export function resolveRequestPath(message: RequestMessage) {
     case "serviceDesign/updateListener":
     case "bi-diagram/getVisibleVariableTypes":
     case "serviceDesign/updateService":
-    case "expressionEditor/visibleVariableTypes":
     case "serviceDesign/getListeners":
     case "serviceDesign/getServiceModel":
     case "serviceDesign/addListener":
@@ -132,9 +132,11 @@ export function resolveRequestPath(message: RequestMessage) {
       break;
     case "configEditor/updateConfigVariables":
       if (message.params && "configFilePath" in message.params && message.params.configFilePath) {
+        console.log("configEditor/updateConfigVariables: configFilePath incoming", message.params.configFilePath);
         const inputPath = message.params.configFilePath as string;
-        const fixedPath = URI.parse(inputPath).path.substring(1);
-        message.params.configFilePath = fixedPath;
+        // const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.configFilePath = toAbsoluteRepoPath(inputPath);
+        console.log("configEditor/updateConfigVariables: fixedPath", message.params.configFilePath);
       }
       break;
     case "serviceDesign/addService":
@@ -286,7 +288,7 @@ export function resolveRequestPath(message: RequestMessage) {
      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("fflowDesignService/getNodeTemplate:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath =normalizePathForGetNodeTemplate(message.params.filePath as string);
         console.log("flowDesignService/getNodeTemplate:file path", message.params.filePath);
       }
   break;
@@ -388,6 +390,13 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("serviceDesign/updateFunction:file path", message.params.filePath);
       }
     break;
+   case "expressionEditor/visibleVariableTypes":
+       if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("expressionEditor/visibleVariableTypes:file path incoming", message.params.filePath);
+        message.params.filePath =normalizePathForExpressionEditorVariables(message.params.filePath as string);
+        console.log("expressionEditor/visibleVariableTypes:file path", message.params.filePath);
+      }
+    break;
   default:
       console.log(">>> default: ", message.method);
   }
@@ -441,8 +450,42 @@ export function resolveResponseMessage(message: ResponseMessage) {
   return message;
 }
 
-function normalizePath(inputPath: string): string {
-  
+function normalizePath(inputPath: string): string { 
+  // Case 1: Handle file:// URIs
+  if (inputPath.startsWith('file://')) {
+    return fileURLToPath(inputPath);
+  }
+
+  // Case 2: Handle relative-looking paths (e.g., /ChathuraIshara/...)
+  if (inputPath.startsWith('/') && !inputPath.startsWith(BASE_REPO_DIR)) {
+    // Remove leading slash if it's not part of the base dir
+    const relativePath = inputPath.startsWith('/') 
+      ? inputPath.substring(1) 
+      : inputPath;
+    return path.join(BASE_REPO_DIR, relativePath);
+  }
+
+  // Case 3: Only filename (e.g., main.bal)
+  // if (!inputPath.includes('/') && !inputPath.includes('\\')) {
+  //   // Set your default subdirectory here:
+  //   const defaultSubDir = 'ChathuraIshara/post-intergration';
+  //   return path.join(BASE_REPO_DIR, defaultSubDir, inputPath);
+  // }
+
+  // Case 4: Already absolute path (return as-is)
+  return inputPath;
+}
+function normalizePathForGetNodeTemplate(inputPath: string): string {
+  // Case 0: Handle leading backslash and Windows-style file URI
+  if (inputPath.startsWith('\\file:///') || inputPath.startsWith('\file:///') || inputPath.startsWith('/file:///')) {
+    // Remove leading slash or backslash, replace all backslashes with slashes
+    const cleaned = inputPath.replace(/^\\+|^\/+/, '').replace(/\\/g, '/');
+    if (cleaned.startsWith('file:///')) {
+      return fileURLToPath(cleaned);
+    }
+    return cleaned;
+  }
+
   // Case 1: Handle file:// URIs
   if (inputPath.startsWith('file://')) {
     return fileURLToPath(inputPath);
@@ -577,6 +620,39 @@ function normalizeFilePathForSyntaxTreeModify(inputUri: string): string {
   const relativePath = pathPart.replace(/^\/+/, '');
   const absPath = path.join(BASE_REPO_DIR, relativePath);
   return URI.file(absPath).toString();
+}
+function normalizePathForExpressionEditorVariables(inputPath: string): string {
+  // Remove leading backslashes or slashes, replace all backslashes with slashes
+  const cleaned = inputPath.replace(/^\\+|^\/+/, '').replace(/\\/g, '/');
+  // If it starts with file://, convert to absolute path
+  if (cleaned.startsWith('file:///')) {
+    return fileURLToPath(cleaned);
+  }
+  return cleaned;
+}
+
+// Converts a relative repo path to an absolute path rooted at BASE_REPO_DIR
+//'ChathuraIshara/post-intergration/config.bal'->'/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/config.bal'
+//also convert \ blackslahsed to / this backslashes in anywhere
+function toAbsoluteRepoPath(inputPath: string): string {
+  // Handle Windows-style file URI with leading backslash and backslashes as separators
+  if (inputPath.startsWith('\\file:///') || inputPath.startsWith('\file:///') || inputPath.startsWith('/file:///')) {
+    // Remove leading backslash or slash, replace all backslashes with slashes
+    const cleaned = inputPath.replace(/^\\+|^\/+/, '').replace(/\\/g, '/');
+    if (cleaned.startsWith('file:///')) {
+      // fileURLToPath will convert file:///... to absolute path with forward slashes
+      return fileURLToPath(cleaned);
+    }
+    return cleaned;
+  }
+  // Handle already absolute path
+  if (inputPath.startsWith(BASE_REPO_DIR)) {
+    // Also normalize slashes in this case
+    return inputPath.replace(/\\/g, '/');
+  }
+  // Remove any leading slashes to avoid double slashes, and normalize backslashes
+  const relative = inputPath.replace(/^\/+/, '').replace(/\\/g, '/');
+  return path.join(BASE_REPO_DIR, relative);
 }
 
 export function getBallerinaHome(): Promise<BallerinaHome | undefined> {

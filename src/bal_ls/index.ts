@@ -108,6 +108,7 @@ export const launchLanguageServer = (runconfig: LanguageServerRunConfig, socket:
 
   if (serverConnection !== undefined) {
     forward(socketConnection, serverConnection, (message) => {
+      console.log("Message received by server: ", message);
       message = resolveAbsolutePath(JSON.stringify(message));
       if (Message.isRequest(message)) { 
         let reqMessage = resolveRequestPath(message)
