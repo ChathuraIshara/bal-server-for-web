@@ -397,6 +397,89 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("expressionEditor/visibleVariableTypes:file path", message.params.filePath);
       }
     break;
+    case "ballerinaDocument/diagnostics":
+     if (
+        message.params &&
+        typeof message.params === "object" &&
+        "documentIdentifier" in message.params &&
+        message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier === "object" &&
+        "uri" in message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier.uri === "string"
+      ) {
+        console.log("inside ballerinaDocument/diagnostics: ", message.params.documentIdentifier.uri);
+        const inputUri = message.params.documentIdentifier.uri as string;
+        const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
+        const absPath = path.join(BASE_DIR, relative);
+        const fileUri = URI.file(absPath).toString();
+        console.log("fileuri in ballerinaDocument/diagnostics",fileUri);
+        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("ballerinaDocument/diagnostics final uri:", message.params.documentIdentifier.uri);
+      }
+    break;
+     case "ballerinaSymbol/getTypeFromExpression":
+     if (
+        message.params &&
+        typeof message.params === "object" &&
+        "documentIdentifier" in message.params &&
+        message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier === "object" &&
+        "uri" in message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier.uri === "string"
+      ) {
+        console.log("inside ballerinaSymbol/getTypeFromExpression: ", message.params.documentIdentifier.uri);
+        const inputUri = message.params.documentIdentifier.uri as string;
+        const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
+        const absPath = path.join(BASE_DIR, relative);
+        const fileUri = URI.file(absPath).toString();
+        console.log("fileuri in ballerinaSymbol/getTypeFromExpression",fileUri);
+        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("ballerinaSymbol/getTypeFromExpression final uri:", message.params.documentIdentifier.uri);
+      }
+    break;
+    case "ballerinaPackage/components":
+      console.log("ballerinaPackage/components params",message.params);
+        if (
+        message.params &&
+        typeof message.params === "object" &&
+        "documentIdentifiers" in message.params &&
+        message.params.documentIdentifiers &&
+        Array.isArray(message.params.documentIdentifiers) &&
+        message.params.documentIdentifiers.length > 0 &&
+        "uri" in message.params.documentIdentifiers[0] &&
+        typeof message.params.documentIdentifiers[0].uri === "string"
+      ) {
+        console.log("inside ballerinaSymbol/getTypeFromExpression: ", message.params.documentIdentifiers[0].uri);
+        const inputUri = message.params.documentIdentifiers[0].uri as string;
+        const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
+        const absPath = path.join(BASE_DIR, relative);
+        const fileUri = URI.file(absPath).toString();
+        console.log("fileuri in ballerinaSymbol/getTypeFromExpression",fileUri);
+        message.params.documentIdentifiers[0].uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("ballerinaSymbol/getTypeFromExpression final uri:", message.params.documentIdentifiers[0].uri);
+      }
+    break;
+    case "ballerinaSymbol/getTypeFromSymbol":
+        if (
+        message.params &&
+        typeof message.params === "object" &&
+        "documentIdentifier" in message.params &&
+        message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier === "object" &&
+        "uri" in message.params.documentIdentifier &&
+        typeof message.params.documentIdentifier.uri === "string"
+      ) {
+        console.log("inside ballerinaSymbol/getTypeFromSymbol ", message.params.documentIdentifier.uri);
+        const inputUri = message.params.documentIdentifier.uri as string;
+        const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
+        const absPath = path.join(BASE_DIR, relative);
+        const fileUri = URI.file(absPath).toString();
+        console.log("fileuri in ballerinaSymbol/getTypeFromSymbol",fileUri);
+        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("ballerinaSymbol/getTypeFromSymbol final uri:", message.params.documentIdentifier.uri);
+      }
+    break;
+
   default:
       console.log(">>> default: ", message.method);
   }
