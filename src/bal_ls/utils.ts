@@ -58,7 +58,7 @@ export const resolveAbsolutePath = (message: string) => {
 
   if (message.includes(`${SCHEME}:`)) { // messages from client
     message = message.replace(new RegExp(`${SCHEME}:`, 'g'), `${fileScheme}${BASE_DIR}`);
-    console.log('messege from client',message);
+    console.log('messege from client', message);
   } else if (
     message.includes(`${BASE_DIR}`) ||
     message.includes("bala:/") ||
@@ -175,7 +175,7 @@ export function resolveRequestPath(message: RequestMessage) {
       if (message.params && "projectPath" in message.params && message.params.projectPath) {
         const inputPath = message.params.projectPath as string;
         const fixedPath = URI.parse(inputPath).path.substring(1);
-        message.params.projectPath = fixedPath;
+        message.params.projectPath =fileUrlToProjectPath(inputPath);
       }
       break;
     case "persistERGeneratorService/getPersistERModels":
@@ -201,8 +201,8 @@ export function resolveRequestPath(message: RequestMessage) {
         const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
         const absPath = path.join(BASE_DIR, relative);
         const fileUri = URI.file(absPath).toString();
-        console.log("fileuri in syntax tree",fileUri);
-        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTree(inputUri);
+        console.log("fileuri in syntax tree", fileUri);
+        message.params.documentIdentifier.uri = normalizeFilePathForSyntaxTree(inputUri);
         console.log("syntaxTree file URI:", message.params.documentIdentifier.uri);
       }
       break;
@@ -230,86 +230,86 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("flowDesignService/getFlowModel:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
         const fixedPath = URI.parse(inputPath).path;
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath = normalizePath(message.params.filePath as string);
         console.log("flowDesignService/getFlowModel:file path", message.params.filePath);
       }
-    break;
-   case "sequenceModelGeneratorService/getSequenceDiagramModel":
-  if (message.params && "filePath" in message.params && message.params.filePath) {
-    console.log("input path of sequence model generator service", message.params.filePath);
-    const inputPath = message.params.filePath as string;
-    const normalized = inputPath.replace(/\\/g, '/');
-    
-    // Remove any existing BASE_DIR prefix to avoid duplication
-    const cleanPath = normalized.startsWith(BASE_DIR) 
-      ? normalized.substring(BASE_DIR.length)
-      : normalized;
-    
-    // Construct the proper absolute path
-    const fixedPath = path.join(BASE_DIR, cleanPath);
-    
-    // Ensure the path is properly normalized
-    message.params.filePath = path.normalize(fixedPath);
-    console.log("sequenceModelGeneratorService/getSequenceDiagramModel: fixed file path", message.params.filePath);
-  }
-  break;
-  case "serviceDesign/addResource":
-    if(message.params && "filePath" in message.params && message.params.filePath) {
-      console.log("input path of add resource", message.params.filePath);
-      message.params.filePath="/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
-      console.log("add resource new file path", message.params.filePath);
-    }
-  break;
-  case "flowDesignService/getAvailableNodes":
-     if (message.params && "filePath" in message.params && message.params.filePath) {
+      break;
+    case "sequenceModelGeneratorService/getSequenceDiagramModel":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("input path of sequence model generator service", message.params.filePath);
+        const inputPath = message.params.filePath as string;
+        const normalized = inputPath.replace(/\\/g, '/');
+
+        // Remove any existing BASE_DIR prefix to avoid duplication
+        const cleanPath = normalized.startsWith(BASE_DIR)
+          ? normalized.substring(BASE_DIR.length)
+          : normalized;
+
+        // Construct the proper absolute path
+        const fixedPath = path.join(BASE_DIR, cleanPath);
+
+        // Ensure the path is properly normalized
+        message.params.filePath = path.normalize(fixedPath);
+        console.log("sequenceModelGeneratorService/getSequenceDiagramModel: fixed file path", message.params.filePath);
+      }
+      break;
+    case "serviceDesign/addResource":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        console.log("input path of add resource", message.params.filePath);
+        message.params.filePath = "/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/main.bal";
+        console.log("add resource new file path", message.params.filePath);
+      }
+      break;
+    case "flowDesignService/getAvailableNodes":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("flowDesignService/getAvailableNodes:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath = normalizePath(message.params.filePath as string);
         console.log("flowDesignService/getAvailableNodes:file path", message.params.filePath);
       }
-  break;
-  case "flowDesignService/search":
+      break;
+    case "flowDesignService/search":
       if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("flowDesignService/search:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizeTypePath(message.params.filePath as string);
+        message.params.filePath = normalizeTypePath(message.params.filePath as string);
         console.log("flowDesignService/search:file path", message.params.filePath);
       }
-  break;
-  case "flowDesignService/getCopilotContext":
+      break;
+    case "flowDesignService/getCopilotContext":
       if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("fflowDesignService/getCopilotContext:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath = normalizePath(message.params.filePath as string);
         console.log("flowDesignService/getCopilotContext:file path", message.params.filePath);
       }
-  break;
-  case "flowDesignService/getNodeTemplate":
-     if (message.params && "filePath" in message.params && message.params.filePath) {
+      break;
+    case "flowDesignService/getNodeTemplate":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("fflowDesignService/getNodeTemplate:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizePathForGetNodeTemplate(message.params.filePath as string);
+        message.params.filePath = normalizePathForGetNodeTemplate(message.params.filePath as string);
         console.log("flowDesignService/getNodeTemplate:file path", message.params.filePath);
       }
-  break;
-   case "dataMapper/visualizable":
-     if (message.params && "filePath" in message.params && message.params.filePath) {
+      break;
+    case "dataMapper/visualizable":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("dataMapper/visualizable:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizePathForDataMapper(message.params.filePath as string);
+        message.params.filePath = normalizePathForDataMapper(message.params.filePath as string);
         console.log("dataMapper/visualizable:file path", message.params.filePath);
       }
-  break;
-   case "flowDesignService/getSourceCode":
-     if (message.params && "filePath" in message.params && message.params.filePath) {
+      break;
+    case "flowDesignService/getSourceCode":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("flowDesignService/getSourceCode:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath = normalizePath(message.params.filePath as string);
         console.log("flowDesignService/getSourceCode:file path", message.params.filePath);
       }
-  break;
-   case "ballerinaDocument/syntaxTreeModify":
-     if (
+      break;
+    case "ballerinaDocument/syntaxTreeModify":
+      if (
         message.params &&
         typeof message.params === "object" &&
         "documentIdentifier" in message.params &&
@@ -323,12 +323,12 @@ export function resolveRequestPath(message: RequestMessage) {
         const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
         const absPath = path.join(BASE_DIR, relative);
         const fileUri = URI.file(absPath).toString();
-        console.log("fileuri in syntax tree modify",fileUri);
-        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("fileuri in syntax tree modify", fileUri);
+        message.params.documentIdentifier.uri = normalizeFilePathForSyntaxTreeModify(inputUri);
         console.log("syntaxTree modify file URI:", message.params.documentIdentifier.uri);
       }
-  break;
-  case "designModelService/artifacts":
+      break;
+    case "designModelService/artifacts":
       if (message.params && "projectPath" in message.params && message.params.projectPath) {
         console.log("designModelService/artifacts: projectPath incoming", message.params.projectPath);
         const inputPath = message.params.projectPath as string;
@@ -336,24 +336,24 @@ export function resolveRequestPath(message: RequestMessage) {
         message.params.projectPath = normalizeProjectPath(inputPath);
         console.log("fixedPath of designModelService/artifacts: ", fixedPath);
       }
-  break;
-  case "expressionEditor/diagnostics":
-     if (message.params && "filePath" in message.params && message.params.filePath) {
+      break;
+    case "expressionEditor/diagnostics":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("expressionEditor/diagnostics:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizeTypePath(message.params.filePath as string);
+        message.params.filePath = normalizeTypePath(message.params.filePath as string);
         console.log("expressionEditor/diagnostics:file path", message.params.filePath);
       }
-  break;
-  case "expressionEditor/types":
-     if (message.params && "filePath" in message.params && message.params.filePath) {
+      break;
+    case "expressionEditor/types":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("expressionEditor/types:file path incoming", message.params.filePath);
         const inputPath = message.params.filePath as string;
-        message.params.filePath =normalizeTypePath(message.params.filePath as string);
+        message.params.filePath = normalizeTypePath(message.params.filePath as string);
         console.log("expressionEditor/types:file path", message.params.filePath);
       }
-  break;
-   case "openAPIService/getModules":
+      break;
+    case "openAPIService/getModules":
       if (message.params && "projectPath" in message.params && message.params.projectPath) {
         console.log("openAPIService/getModules: projectPath incoming", message.params.projectPath);
         const inputPath = message.params.projectPath as string;
@@ -361,7 +361,7 @@ export function resolveRequestPath(message: RequestMessage) {
         message.params.projectPath = normalizeProjectPath(inputPath);
         console.log("fixedPath of openAPIService/getModules: ", fixedPath);
       }
-  break;
+      break;
     case "textDocument/rename":
       if (
         message.params &&
@@ -378,27 +378,27 @@ export function resolveRequestPath(message: RequestMessage) {
       }
       break;
     case "serviceDesign/getListenerFromSource":
-       if (message.params && "filePath" in message.params && message.params.filePath) {
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("serviceDesign/getListenerFromSource:file path incoming", message.params.filePath);
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath = normalizePath(message.params.filePath as string);
         console.log("serviceDesign/getListenerFromSource:file path", message.params.filePath);
       }
     case "serviceDesign/updateFunction":
-       if (message.params && "filePath" in message.params && message.params.filePath) {
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("serviceDesign/updateFunction:file path incoming", message.params.filePath);
-        message.params.filePath =normalizePath(message.params.filePath as string);
+        message.params.filePath = normalizePath(message.params.filePath as string);
         console.log("serviceDesign/updateFunction:file path", message.params.filePath);
       }
-    break;
-   case "expressionEditor/visibleVariableTypes":
-       if (message.params && "filePath" in message.params && message.params.filePath) {
+      break;
+    case "expressionEditor/visibleVariableTypes":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
         console.log("expressionEditor/visibleVariableTypes:file path incoming", message.params.filePath);
-        message.params.filePath =normalizePathForExpressionEditorVariables(message.params.filePath as string);
+        message.params.filePath = normalizePathForExpressionEditorVariables(message.params.filePath as string);
         console.log("expressionEditor/visibleVariableTypes:file path", message.params.filePath);
       }
-    break;
+      break;
     case "ballerinaDocument/diagnostics":
-     if (
+      if (
         message.params &&
         typeof message.params === "object" &&
         "documentIdentifier" in message.params &&
@@ -412,13 +412,13 @@ export function resolveRequestPath(message: RequestMessage) {
         const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
         const absPath = path.join(BASE_DIR, relative);
         const fileUri = URI.file(absPath).toString();
-        console.log("fileuri in ballerinaDocument/diagnostics",fileUri);
-        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("fileuri in ballerinaDocument/diagnostics", fileUri);
+        message.params.documentIdentifier.uri = normalizeFilePathForSyntaxTreeModify(inputUri);
         console.log("ballerinaDocument/diagnostics final uri:", message.params.documentIdentifier.uri);
       }
-    break;
-     case "ballerinaSymbol/getTypeFromExpression":
-     if (
+      break;
+    case "ballerinaSymbol/getTypeFromExpression":
+      if (
         message.params &&
         typeof message.params === "object" &&
         "documentIdentifier" in message.params &&
@@ -432,14 +432,14 @@ export function resolveRequestPath(message: RequestMessage) {
         const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
         const absPath = path.join(BASE_DIR, relative);
         const fileUri = URI.file(absPath).toString();
-        console.log("fileuri in ballerinaSymbol/getTypeFromExpression",fileUri);
-        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("fileuri in ballerinaSymbol/getTypeFromExpression", fileUri);
+        message.params.documentIdentifier.uri = normalizeFilePathForSyntaxTreeModify(inputUri);
         console.log("ballerinaSymbol/getTypeFromExpression final uri:", message.params.documentIdentifier.uri);
       }
-    break;
+      break;
     case "ballerinaPackage/components":
-      console.log("ballerinaPackage/components params",message.params);
-        if (
+      console.log("ballerinaPackage/components params", message.params);
+      if (
         message.params &&
         typeof message.params === "object" &&
         "documentIdentifiers" in message.params &&
@@ -454,13 +454,13 @@ export function resolveRequestPath(message: RequestMessage) {
         const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
         const absPath = path.join(BASE_DIR, relative);
         const fileUri = URI.file(absPath).toString();
-        console.log("fileuri in ballerinaSymbol/getTypeFromExpression",fileUri);
-        message.params.documentIdentifiers[0].uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("fileuri in ballerinaSymbol/getTypeFromExpression", fileUri);
+        message.params.documentIdentifiers[0].uri = normalizeFilePathForSyntaxTreeModify(inputUri);
         console.log("ballerinaSymbol/getTypeFromExpression final uri:", message.params.documentIdentifiers[0].uri);
       }
-    break;
+      break;
     case "ballerinaSymbol/getTypeFromSymbol":
-        if (
+      if (
         message.params &&
         typeof message.params === "object" &&
         "documentIdentifier" in message.params &&
@@ -474,13 +474,28 @@ export function resolveRequestPath(message: RequestMessage) {
         const relative = decodeURIComponent(URI.parse(inputUri).path).replace(/^\//, "");
         const absPath = path.join(BASE_DIR, relative);
         const fileUri = URI.file(absPath).toString();
-        console.log("fileuri in ballerinaSymbol/getTypeFromSymbol",fileUri);
-        message.params.documentIdentifier.uri =normalizeFilePathForSyntaxTreeModify(inputUri);
+        console.log("fileuri in ballerinaSymbol/getTypeFromSymbol", fileUri);
+        message.params.documentIdentifier.uri = normalizeFilePathForSyntaxTreeModify(inputUri);
         console.log("ballerinaSymbol/getTypeFromSymbol final uri:", message.params.documentIdentifier.uri);
       }
-    break;
-
-  default:
+      break;
+    case "textDocument/completion":
+      if (
+        message.params &&
+        typeof message.params === "object" &&
+        "textDocument" in message.params &&
+        message.params.textDocument &&
+        typeof message.params.textDocument === "object" &&
+        "uri" in message.params.textDocument &&
+        typeof message.params.textDocument.uri === "string"
+      ) {
+        console.log("inside textDocument/completion", message.params.textDocument.uri);
+        const inputUri = message.params.textDocument.uri as string;
+        message.params.textDocument.uri = convertFilePathOfTextDocumentCompletetion(inputUri);
+        console.log("fileuri in textDocument/completion", message.params.textDocument.uri);
+      }
+      break;
+    default:
       console.log(">>> default: ", message.method);
   }
   return message;
@@ -533,7 +548,13 @@ export function resolveResponseMessage(message: ResponseMessage) {
   return message;
 }
 
-function normalizePath(inputPath: string): string { 
+//file:///home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration ->/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration
+function fileUrlToProjectPath(inputPath:string):string{
+    let path = inputPath.replace(/^file:\/\//, '');
+    return path;
+}
+
+function normalizePath(inputPath: string): string {
   // Case 1: Handle file:// URIs
   if (inputPath.startsWith('file://')) {
     return fileURLToPath(inputPath);
@@ -542,8 +563,8 @@ function normalizePath(inputPath: string): string {
   // Case 2: Handle relative-looking paths (e.g., /ChathuraIshara/...)
   if (inputPath.startsWith('/') && !inputPath.startsWith(BASE_REPO_DIR)) {
     // Remove leading slash if it's not part of the base dir
-    const relativePath = inputPath.startsWith('/') 
-      ? inputPath.substring(1) 
+    const relativePath = inputPath.startsWith('/')
+      ? inputPath.substring(1)
       : inputPath;
     return path.join(BASE_REPO_DIR, relativePath);
   }
@@ -577,8 +598,8 @@ function normalizePathForGetNodeTemplate(inputPath: string): string {
   // Case 2: Handle relative-looking paths (e.g., /ChathuraIshara/...)
   if (inputPath.startsWith('/') && !inputPath.startsWith(BASE_REPO_DIR)) {
     // Remove leading slash if it's not part of the base dir
-    const relativePath = inputPath.startsWith('/') 
-      ? inputPath.substring(1) 
+    const relativePath = inputPath.startsWith('/')
+      ? inputPath.substring(1)
       : inputPath;
     return path.join(BASE_REPO_DIR, relativePath);
   }
@@ -612,8 +633,8 @@ function normalizePathForDataMapper(inputPath: string): string {
   // Case 2: Handle relative-looking paths (e.g., /ChathuraIshara/...)
   if (inputPath.startsWith('/') && !inputPath.startsWith(BASE_REPO_DIR)) {
     // Remove leading slash if it's not part of the base dir
-    const relativePath = inputPath.startsWith('/') 
-      ? inputPath.substring(1) 
+    const relativePath = inputPath.startsWith('/')
+      ? inputPath.substring(1)
       : inputPath;
     return path.join(BASE_REPO_DIR, relativePath);
   }
@@ -627,6 +648,12 @@ function normalizePathForDataMapper(inputPath: string): string {
 
   // Case 4: Already absolute path (return as-is)
   return inputPath;
+}
+function convertFilePathOfTextDocumentCompletetion(inputPath: string): string {
+  return inputPath.replace(
+    /^file:\/\/\/web-bala(%3A)?/,
+    `file://${BASE_REPO_DIR}`
+  );
 }
 function normalizeTypePath(inputPath: string): string {
   // Case 0: Handle leading backslash and Windows-style file URI
@@ -647,8 +674,8 @@ function normalizeTypePath(inputPath: string): string {
   // Case 2: Handle relative-looking paths (e.g., /ChathuraIshara/...)
   if (inputPath.startsWith('/') && !inputPath.startsWith(BASE_REPO_DIR)) {
     // Remove leading slash if it's not part of the base dir
-    const relativePath = inputPath.startsWith('/') 
-      ? inputPath.substring(1) 
+    const relativePath = inputPath.startsWith('/')
+      ? inputPath.substring(1)
       : inputPath;
     return path.join(BASE_REPO_DIR, relativePath);
   }
@@ -664,22 +691,22 @@ function normalizeTypePath(inputPath: string): string {
   return inputPath;
 }
 function normalizeFilePathForSyntaxTree(inputPath: string): string {
-    const BASE_PREFIX = 'file:///home/my-project/Cloud-editor/bal-server-for-web/repos/';
-    
-    // Case 1: file:///ChathuraIshara/...
-    if (inputPath.startsWith('file:///') && !inputPath.includes('web-bala%3A')) {
-        const relativePath = inputPath.replace('file:///', '');
-        return BASE_PREFIX + relativePath;
-    }
-    
-    // Case 2: file:///web-bala%3A/ChathuraIshara/...
-    if (inputPath.startsWith('file:///web-bala%3A/')) {
-        const relativePath = inputPath.replace('file:///web-bala%3A/', '');
-        return BASE_PREFIX + relativePath;
-    }
-    
-    // If neither case matches, return as-is (or throw error if you prefer)
-    return inputPath;
+  const BASE_PREFIX = 'file:///home/my-project/Cloud-editor/bal-server-for-web/repos/';
+
+  // Case 1: file:///ChathuraIshara/...
+  if (inputPath.startsWith('file:///') && !inputPath.includes('web-bala%3A')) {
+    const relativePath = inputPath.replace('file:///', '');
+    return BASE_PREFIX + relativePath;
+  }
+
+  // Case 2: file:///web-bala%3A/ChathuraIshara/...
+  if (inputPath.startsWith('file:///web-bala%3A/')) {
+    const relativePath = inputPath.replace('file:///web-bala%3A/', '');
+    return BASE_PREFIX + relativePath;
+  }
+
+  // If neither case matches, return as-is (or throw error if you prefer)
+  return inputPath;
 }
 
 // Converts a file URI to an absolute file URI rooted at BASE_REPO_DIR.
@@ -800,7 +827,7 @@ export function resolveNotification(message: NotificationMessage) {
       const uri = message.params.textDocument.uri as string;
       if (uri.startsWith("expr:")) {
         // Remove 'expr:' and any leading slashes
-        const relativePath = uri.replace(/^expr:/, "").replace(/^\/+/ , "");
+        const relativePath = uri.replace(/^expr:/, "").replace(/^\/+/, "");
         // Join with BASE_DIR to get absolute path
         const absPath = path.join(BASE_DIR, relativePath);
         // Convert to file URI
@@ -810,7 +837,7 @@ export function resolveNotification(message: NotificationMessage) {
     }
   }
   return message;
- 
+
 }
 
 function normalizeProjectPath(inputPath: string): string {
@@ -828,6 +855,18 @@ function normalizeProjectPath(inputPath: string): string {
   }
   // Otherwise, treat as relative to BASE_REPO_DIR
   return path.join(BASE_REPO_DIR, inputPath);
+}
+
+// Converts a file URI with web-bala%3A scheme to an absolute file URI rooted at BASE_REPO_DIR
+function convertWebBalaUriToAbsoluteFileUri(inputUri: string): string {
+  const WEB_BALA_PREFIX = 'file:///web-bala%3A/';
+  if (inputUri.startsWith(WEB_BALA_PREFIX)) {
+    const relativePath = inputUri.substring(WEB_BALA_PREFIX.length);
+    const absPath = path.join(BASE_REPO_DIR, relativePath);
+    return URI.file(absPath).toString();
+  }
+  // If not matching, return as-is
+  return inputUri;
 }
 
 
