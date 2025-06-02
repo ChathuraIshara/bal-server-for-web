@@ -495,6 +495,13 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("fileuri in textDocument/completion", message.params.textDocument.uri);
       }
       break;
+    case "flowDesignService/getModuleNodes":
+       if (message.params && "filePath" in message.params && message.params.filePath) {
+         const inputUri=message.params.filePath as string;
+         message.params.filePath=fileUrlToProjectPath(inputUri);
+         console.log("flowDesignService/getModuleNodes new file path", message.params.filePath);
+       }
+      break;
     default:
       console.log(">>> default: ", message.method);
   }
@@ -553,7 +560,6 @@ function fileUrlToProjectPath(inputPath:string):string{
     let path = inputPath.replace(/^file:\/\//, '');
     return path;
 }
-
 function normalizePath(inputPath: string): string {
   // Case 1: Handle file:// URIs
   if (inputPath.startsWith('file://')) {
