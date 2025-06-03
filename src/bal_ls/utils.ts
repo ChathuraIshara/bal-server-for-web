@@ -502,6 +502,22 @@ export function resolveRequestPath(message: RequestMessage) {
          console.log("flowDesignService/getModuleNodes new file path", message.params.filePath);
        }
       break;
+    case "ballerinaSymbol/getSymbol":
+       if (
+        message.params &&
+        typeof message.params === "object" &&
+        "textDocumentIdentifier" in message.params &&
+        message.params.textDocumentIdentifier &&
+        typeof message.params.textDocumentIdentifier === "object" &&
+        "uri" in message.params.textDocumentIdentifier &&
+        typeof message.params.textDocumentIdentifier.uri === "string"
+      )
+      {
+        const inputUri=message.params.textDocumentIdentifier.uri as string;
+        message.params.textDocumentIdentifier.uri = normalizeFilePathForSyntaxTree(inputUri);
+        console.log("after editing file path for ballerinaSymbol/getSymbol", message.params.textDocumentIdentifier.uri);  
+      }
+      break;
     default:
       console.log(">>> default: ", message.method);
   }
