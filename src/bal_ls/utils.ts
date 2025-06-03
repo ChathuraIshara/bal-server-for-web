@@ -699,6 +699,12 @@ function normalizeTypePath(inputPath: string): string {
 function normalizeFilePathForSyntaxTree(inputPath: string): string {
   const BASE_PREFIX = 'file:///home/my-project/Cloud-editor/bal-server-for-web/repos/';
 
+  //case 0: file:///home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/
+  if(inputPath.startsWith(BASE_PREFIX))
+  {
+    return inputPath;
+  }
+
   // Case 1: file:///ChathuraIshara/...
   if (inputPath.startsWith('file:///') && !inputPath.includes('web-bala%3A')) {
     const relativePath = inputPath.replace('file:///', '');
