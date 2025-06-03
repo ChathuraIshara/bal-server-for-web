@@ -518,6 +518,21 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("after editing file path for ballerinaSymbol/getSymbol", message.params.textDocumentIdentifier.uri);  
       }
       break;
+      case "textDocument/codeAction":
+         if (
+        message.params &&
+        typeof message.params === "object" &&
+        "textDocument" in message.params &&
+        message.params.textDocument &&
+        typeof message.params.textDocument === "object" &&
+        "uri" in message.params.textDocument &&
+        typeof message.params.textDocument.uri === "string"
+      ) {
+        const inputUri = message.params.textDocument.uri as string;
+        message.params.textDocument.uri = normalizeFilePathForSyntaxTree(inputUri);
+        console.log("after editing file path for textDocument/codeAction", message.params.textDocument.uri);
+      }
+      break;
     default:
       console.log(">>> default: ", message.method);
   }
