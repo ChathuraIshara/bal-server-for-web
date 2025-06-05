@@ -518,6 +518,14 @@ export function resolveRequestPath(message: RequestMessage) {
             console.log("flowDesignService/deleteComponent final:file path", message.params.filePath);
           }
           break;
+        case "typesManager/recordConfig":
+           if(message.params && "filePath" in message.params && message.params.filePath)
+          {
+            console.log("typesManager/recordConfig:file path incoming", message.params.filePath);
+            message.params.filePath=fileUrlToProjectPath(message.params.filePath as string);
+            console.log("typesManager/recordConfig final:file path", message.params.filePath);
+          }
+          break;
     default:
       console.log(">>> default: ", message.method);
   }
@@ -727,6 +735,10 @@ function normalizeTypePath(inputPath: string): string {
 }
 function normalizeFilePathForSyntaxTree(inputPath: string): string {
   const BASE_PREFIX = 'file:///home/my-project/Cloud-editor/bal-server-for-web/repos/';
+  // If path already starts with BASE_PREFIX, return as-is
+  if (inputPath.startsWith(BASE_PREFIX)) {
+    return inputPath;
+  }
 
   // Case 1: file:///ChathuraIshara/...
   if (inputPath.startsWith('file:///') && !inputPath.includes('web-bala%3A')) {
