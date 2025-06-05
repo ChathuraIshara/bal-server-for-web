@@ -502,6 +502,22 @@ export function resolveRequestPath(message: RequestMessage) {
           console.log("flowDesignService/deleteFlowNode final:file path", message.params.filePath);
         }
         break;
+      case "flowDesignService/getModuleNodes":
+        if(message.params && "filePath" in message.params && message.params.filePath)
+        {
+          console.log("flowDesignService/getModuleNodes:file path incoming", message.params.filePath);
+          message.params.filePath=fileUrlToProjectPath(message.params.filePath as string);
+          console.log("flowDesignService/getModuleNodes final:file path", message.params.filePath);
+        }
+        break;
+        case "flowDesignService/deleteComponent":
+          if(message.params && "filePath" in message.params && message.params.filePath)
+          {
+            console.log("flowDesignService/deleteComponent:file path incoming", message.params.filePath);
+            message.params.filePath=fileUrlToProjectPath(message.params.filePath as string);
+            console.log("flowDesignService/deleteComponent final:file path", message.params.filePath);
+          }
+          break;
     default:
       console.log(">>> default: ", message.method);
   }
