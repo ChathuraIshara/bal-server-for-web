@@ -97,7 +97,6 @@ export function resolveRequestPath(message: RequestMessage) {
     case "serviceDesign/getServiceModel":
     case "serviceDesign/addListener":
     case "typesManager/updateTypes":
-    case "flowDesignService/deleteFlowNode":
     case "typesManager/createGraphqlClassType":
     case "typesManager/getGraphqlType":
     case "serviceDesign/addFunction":
@@ -495,48 +494,30 @@ export function resolveRequestPath(message: RequestMessage) {
         console.log("fileuri in textDocument/completion", message.params.textDocument.uri);
       }
       break;
-    case "flowDesignService/getModuleNodes":
-       if (message.params && "filePath" in message.params && message.params.filePath) {
-         const inputUri=message.params.filePath as string;
-         message.params.filePath=fileUrlToProjectPath(inputUri);
-         console.log("flowDesignService/getModuleNodes new file path", message.params.filePath);
-       }
-      break;
-    case "ballerinaSymbol/getSymbol":
-       if (
-        message.params &&
-        typeof message.params === "object" &&
-        "textDocumentIdentifier" in message.params &&
-        message.params.textDocumentIdentifier &&
-        typeof message.params.textDocumentIdentifier === "object" &&
-        "uri" in message.params.textDocumentIdentifier &&
-        typeof message.params.textDocumentIdentifier.uri === "string"
-      )
-      {
-        const inputUri=message.params.textDocumentIdentifier.uri as string;
-        message.params.textDocumentIdentifier.uri = normalizeFilePathForSyntaxTree(inputUri);
-        console.log("after editing file path for ballerinaSymbol/getSymbol", message.params.textDocumentIdentifier.uri);  
-      }
-      break;
-      case "textDocument/codeAction":
-         if (
-        message.params &&
-        typeof message.params === "object" &&
-        "textDocument" in message.params &&
-        message.params.textDocument &&
-        typeof message.params.textDocument === "object" &&
-        "uri" in message.params.textDocument &&
-        typeof message.params.textDocument.uri === "string"
-      ) {
-        const inputUri = message.params.textDocument.uri as string;
-        message.params.textDocument.uri = normalizeFilePathForSyntaxTree(inputUri);
-        console.log("after editing file path for textDocument/codeAction", message.params.textDocument.uri);
-      }
-      break;
+      case "flowDesignService/deleteFlowNode":
+        if(message.params && "filePath" in message.params && message.params.filePath)
+        {
+          console.log("flowDesignService/deleteFlowNode:file path incoming", message.params.filePath);
+          message.params.filePath=toAbsoluteRepoPath(message.params.filePath as string);
+          console.log("flowDesignService/deleteFlowNode final:file path", message.params.filePath);
+        }
+        break;
     default:
       console.log(">>> default: ", message.method);
   }
   return message;
+}
+
+function hasDocumentIdentifierUri(obj: any): boolean {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    "documentIdentifier" in obj &&
+    obj.documentIdentifier &&
+    typeof obj.documentIdentifier === "object" &&
+    "uri" in obj.documentIdentifier &&
+    typeof obj.documentIdentifier.uri === "string"
+  );
 }
 
 export function resolveResponseMessage(message: ResponseMessage) {
@@ -591,6 +572,7 @@ function fileUrlToProjectPath(inputPath:string):string{
     let path = inputPath.replace(/^file:\/\//, '');
     return path;
 }
+
 function normalizePath(inputPath: string): string {
   // Case 1: Handle file:// URIs
   if (inputPath.startsWith('file://')) {
@@ -729,12 +711,6 @@ function normalizeTypePath(inputPath: string): string {
 }
 function normalizeFilePathForSyntaxTree(inputPath: string): string {
   const BASE_PREFIX = 'file:///home/my-project/Cloud-editor/bal-server-for-web/repos/';
-
-  //case 0: file:///home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration/
-  if(inputPath.startsWith(BASE_PREFIX))
-  {
-    return inputPath;
-  }
 
   // Case 1: file:///ChathuraIshara/...
   if (inputPath.startsWith('file:///') && !inputPath.includes('web-bala%3A')) {
