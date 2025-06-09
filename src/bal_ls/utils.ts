@@ -593,8 +593,12 @@ export function resolveResponseMessage(message: ResponseMessage) {
 
 //file:///home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration ->/home/my-project/Cloud-editor/bal-server-for-web/repos/ChathuraIshara/post-intergration
 function fileUrlToProjectPath(inputPath:string):string{
+  if(inputPath.startsWith('file:///')) {
     let path = inputPath.replace(/^file:\/\//, '');
     return path;
+  }else{
+    return path.join(BASE_REPO_DIR, inputPath);
+  }
 }
 
 function normalizePath(inputPath: string): string {
