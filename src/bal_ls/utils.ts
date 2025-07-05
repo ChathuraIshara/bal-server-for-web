@@ -55,6 +55,7 @@ export const getLocalDirectory = (referenceUrl: string | URL) => {
 
 export const resolveAbsolutePath = (message: string) => {
   const fileScheme = os.platform() === "win32" ? "file:///" : "file://";
+  console.log("this is inside resolveAbsolutePath: ", message);
 
   if (message.includes(`${SCHEME}:`)) { // messages from client
      message = message.replace(new RegExp(`${SCHEME}:`, 'g'), `${fileScheme}${BASE_DIR}`);
@@ -545,6 +546,7 @@ function hasDocumentIdentifierUri(obj: any): boolean {
 }
 
 export function resolveResponseMessage(message: ResponseMessage) {
+  console.log("this is the response before resolving: ", message);
   if (message.result
     && typeof message.result === "object"
     && "designModel" in message.result &&
